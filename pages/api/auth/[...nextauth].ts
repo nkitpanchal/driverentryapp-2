@@ -1,4 +1,4 @@
-import NextAuth from 'next-auth'
+import NextAuth, { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { MongoClient } from 'mongodb'
 import { compare } from 'bcrypt'
@@ -12,7 +12,7 @@ declare module "next-auth" {
   }
 }
 
-export default NextAuth({
+export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -21,25 +21,36 @@ export default NextAuth({
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        const client = await MongoClient.connect(process.env.MONGODB_URI as string)
-        const db = client.db()
-
-        const user = await db.collection('users').findOne({ username: credentials?.username })
-
-        if (!user) {
-          client.close()
-          throw new Error('No user found')
+        if (!credentials?.username || !credentials?.password) {
+          throw new Error('Username and password are required')
         }
 
-        const isValid = await compare(credentials?.password as string, user.password)
+        let client: MongoClient | null = null
+        try {
+          client = await MongoClient.connect(process.env.MONGODB_URI as string)
+          const db = client.db()
 
-        if (!isValid) {
-          client.close()
-          throw new Error('Invalid password')
+          const user = await db.collection('users').findOne({ username: credentials.username })
+
+          if (!user) {
+            throw new Error('No user found')
+          }
+
+          const isValid = await compare(credentials.password, user.password)
+
+          if (!isValid) {
+            throw new Error('Invalid password')
+          }
+
+          return { id: user._id.toString(), name: user.username }
+        } catch (error) {
+          console.error('Authentication error:', error)
+          throw error
+        } finally {
+          if (client) {
+            await client.close()
+          }
         }
-
-        client.close()
-        return { id: user._id.toString(), name: user.username }
       }
     })
   ],
@@ -61,4 +72,10 @@ export default NextAuth({
     }
   },
   secret: process.env.NEXTAUTH_SECRET,
-})
+  session: {
+    strategy: 'jwt',
+  },
+  debug: process.env.NODE_ENV === 'development',
+}
+
+export default NextAuth(authOptions)
