@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import Layout from '../components/Layout'
 import Link from 'next/link'
-import { useRouter } from 'next/router'
 
 type Driver = {
   _id: string
@@ -22,7 +21,6 @@ export default function AllDrivers() {
   const [drivers, setDrivers] = useState<Driver[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [filteredDrivers, setFilteredDrivers] = useState<Driver[]>([])
-  const router = useRouter()
 
   useEffect(() => {
     fetchDrivers()

@@ -25,7 +25,7 @@ export default function Dashboard() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [editingDriver, setEditingDriver] = useState<Driver | null>(null)
   const router = useRouter()
-  const { data: session, status } = useSession()
+  const { status } = useSession()
 
   useEffect(() => {
     if (status === 'unauthenticated') {

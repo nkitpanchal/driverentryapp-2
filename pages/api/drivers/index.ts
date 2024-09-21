@@ -49,7 +49,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           const newVisits = currentVisits + 1
           const newTotalVisits = currentTotalVisits + 1
 
-          const updateData: any = {
+          const updateData: {
+            $set: {
+              name: string;
+              mobile: string;
+              vehicleNumber: string;
+              vehicleType: string;
+              lastVisitedDhaba: string;
+              visits: number;
+              totalVisits: number;
+              eligibleForCommission?: boolean;
+              commissionReceived?: boolean;
+            }
+          } = {
             $set: { 
               name: driverData.name,
               mobile: driverData.mobile,
