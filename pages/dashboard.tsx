@@ -3,6 +3,22 @@ import Layout from '../components/Layout'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useSession } from 'next-auth/react'
+// Updated imports for UI components
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+    Label,
+    Input,
+    Button,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue
+  } from '../components/ui-components'
 
 type Driver = {
   _id: string
@@ -17,6 +33,15 @@ type Driver = {
   eligibleForCommission: boolean
   commissionReceived: boolean
 }
+
+const vehicleTypes = [
+  "Truck",
+  "Bus",
+  "Van",
+  "Car",
+  "Motorcycle",
+  "Other"
+]
 
 export default function Dashboard() {
   const [drivers, setDrivers] = useState<Driver[]>([])
@@ -99,6 +124,18 @@ export default function Dashboard() {
   const closeEditModal = () => {
     setIsEditModalOpen(false)
     setEditingDriver(null)
+  }
+
+  const handleEditChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (editingDriver) {
+      setEditingDriver({ ...editingDriver, [e.target.name]: e.target.value })
+    }
+  }
+
+  const handleVehicleTypeChange = (value: string) => {
+    if (editingDriver) {
+      setEditingDriver({ ...editingDriver, vehicleType: value })
+    }
   }
 
   const handleEditSubmit = async (e: React.FormEvent) => {
@@ -217,75 +254,62 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {isEditModalOpen && editingDriver && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full" id="my-modal">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div className="mt-3 text-center">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">Edit Driver Information</h3>
-              <form onSubmit={handleEditSubmit} className="mt-2 text-left">
-                <div className="mb-4">
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700">Name</label>
-                  <input
-                    type="text"
+      <Dialog open={isEditModalOpen} onClose={closeEditModal}>
+        <DialogContent>
+            <DialogHeader>
+            <DialogTitle>Edit Driver Information</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleEditSubmit}>
+            <div className="space-y-4">
+                <div>
+                <Label htmlFor="name">Name</Label>
+                <Input
                     id="name"
-                    value={editingDriver.name}
-                    onChange={(e) => setEditingDriver({...editingDriver, name: e.target.value})}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                  />
+                    name="name"
+                    value={editingDriver?.name || ''}
+                    onChange={handleEditChange}
+                />
                 </div>
-                <div className="mb-4">
-                  <label htmlFor="dlNo" className="block text-sm font-medium text-gray-700">DL Number</label>
-                  <input
-                    type="text"
+                <div>
+                <Label htmlFor="dlNo">DL Number</Label>
+                <Input
                     id="dlNo"
-                    value={editingDriver.dlNo}
-                    onChange={(e) => setEditingDriver({...editingDriver, dlNo: e.target.value})}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                  />
+                    name="dlNo"
+                    value={editingDriver?.dlNo || ''}
+                    onChange={handleEditChange}
+                />
                 </div>
-                <div className="mb-4">
-                  <label htmlFor="vehicleNumber" className="block text-sm font-medium text-gray-700">Vehicle Number</label>
-                  <input
-                    type="text"
+                <div>
+                <Label htmlFor="vehicleNumber">Vehicle Number</Label>
+                <Input
                     id="vehicleNumber"
-                    value={editingDriver.vehicleNumber}
-                    onChange={(e) => setEditingDriver({...editingDriver, vehicleNumber: e.target.value})}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                  />
+                    name="vehicleNumber"
+                    value={editingDriver?.vehicleNumber || ''}
+                    onChange={handleEditChange}
+                />
                 </div>
-                <div className="mb-4">
-                  <label htmlFor="vehicleType" className="block text-sm font-medium text-gray-700">Vehicle Type</label>
-                  <input
-                    type="text"
+                <div>
+                <Label htmlFor="vehicleType">Vehicle Type</Label>
+                <Select
                     id="vehicleType"
-                    value={editingDriver.vehicleType}
-                    onChange={(e) => setEditingDriver({...editingDriver, vehicleType: e.target.value})}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                  />
-                </div>
-                <div className="items-center px-4 py-3">
-                  <button
-                    id="ok-btn"
-                    type="submit"
-                    className="px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
-                  >
-                    Save Changes
-                  </button>
-                </div>
-              </form>
-              <div className="items-center px-4 py-3">
-                <button
-                  id="cancel-btn"
-                  onClick={closeEditModal}
-                  className="px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-300"
+                    value={editingDriver?.vehicleType || ''}
+                    onChange={(e) => handleVehicleTypeChange(e.target.value)}
                 >
-                  Cancel
-                </button>
-              </div>
+                    <SelectValue placeholder="Select vehicle type" />
+                    {vehicleTypes.map((type) => (
+                    <SelectItem key={type} value={type}>
+                        {type}
+                    </SelectItem>
+                    ))}
+                </Select>
+                </div>
             </div>
-          </div>
-        </div>
-      )}
+            <DialogFooter>
+                <Button type="submit">Save changes</Button>
+            </DialogFooter>
+            </form>
+        </DialogContent>
+        </Dialog>
     </Layout>
   )
 }
